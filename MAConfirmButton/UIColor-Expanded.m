@@ -28,6 +28,10 @@
 };
 */
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+
+
 static const char *colorNameDB;
 static const char *crayolaNameDB;
 
@@ -98,12 +102,10 @@ static NSLock *crayolaNameCacheLock;
 	CGFloat r,g,b,a;
 	if (![self red:&r green:&g blue:&b alpha:&a]) return nil;
 	
-	return [NSArray arrayWithObjects:
-			[NSNumber numberWithFloat:r],
-			[NSNumber numberWithFloat:g],
-			[NSNumber numberWithFloat:b],
-			[NSNumber numberWithFloat:a],
-			nil];
+	return @[@(r),
+			@(g),
+			@(b),
+			@(a)];
 }
 
 - (BOOL)red:(CGFloat *)red green:(CGFloat *)green blue:(CGFloat *)blue alpha:(CGFloat *)alpha {
@@ -401,7 +403,7 @@ static NSLock *crayolaNameCacheLock;
 }
 
 - (NSString *)hexStringFromColor {
-	return [NSString stringWithFormat:@"%0.6X", self.rgbHex];
+	return [NSString stringWithFormat:@"%0.6lX", self.rgbHex];
 }
 
 - (NSString *)closestColorNameFor: (const char *) aColorDatabase {
@@ -517,12 +519,12 @@ static NSLock *crayolaNameCacheLock;
 
 // Lookup a color using css 3/svg color name
 + (UIColor *)colorWithName:(NSString *)cssColorName {
-	return [[UIColor namedColors] objectForKey:cssColorName];
+	return [UIColor namedColors][cssColorName];
 }
 
 // Lookup a color using a crayola name
 + (UIColor *)crayonWithName:(NSString *)crayolaColorName {
-	return [[UIColor namedCrayons] objectForKey:crayolaColorName];
+	return [UIColor namedCrayons][crayolaColorName];
 }
 
 // Return complete mapping of css3/svg color names --> colors
@@ -740,7 +742,7 @@ static const char *crayolaNameDB = ","
 + (void)populateColorNameCache {
 	NSAssert(colorNameCache == nil, @"+pouplateColorNameCache was called when colorNameCache was not nil");
 	NSMutableDictionary *cache = [NSMutableDictionary dictionary];
-	for (const char* entry = colorNameDB; entry = strchr(entry, ','); ) {
+	for (const char* entry = colorNameDB; (entry = strchr(entry, ',')); ) {
 		
 		// Step forward to the start of the name
 		++entry;
@@ -755,7 +757,7 @@ static const char *crayolaNameDB = ","
 		// Get the color, and add to the dictionary
 		int hex, increment;
 		if (sscanf(++h, "%x%n", &hex, &increment) != 1) {[name release]; break;} // thanks Curtis Duhn
-		[cache setObject:[self colorWithRGBHex:hex] forKey:name];
+		cache[name] = [self colorWithRGBHex:hex];
 		
 		// Cleanup and move to the next item
 		[name release];
@@ -767,7 +769,7 @@ static const char *crayolaNameDB = ","
 + (void)populateCrayolaNameCache {
 	NSAssert(crayolaNameCache == nil, @"+pouplateCrayolaNameCache was called when crayolaNameCache was not nil");
 	NSMutableDictionary *cache = [NSMutableDictionary dictionary];
-	for (const char* entry = crayolaNameDB; entry = strchr(entry, ','); ) {
+	for (const char* entry = crayolaNameDB; (entry = strchr(entry, ',')); ) {
 		
 		// Step forward to the start of the name
 		++entry;
@@ -782,7 +784,7 @@ static const char *crayolaNameDB = ","
 		// Get the color, and add to the dictionary
 		int hex, increment;
 		if (sscanf(++h, "%x%n", &hex, &increment) != 1) {[name release]; break;} // thanks Curtis Duhn
-		[cache setObject:[self colorWithRGBHex:hex] forKey:name];
+		cache[name] = [self colorWithRGBHex:hex];
 		
 		// Cleanup and move to the next item
 		[name release];
@@ -791,3 +793,5 @@ static const char *crayolaNameDB = ","
 	crayolaNameCache = [cache copy];
 }
 @end
+
+#pragma clang diagnostic pop

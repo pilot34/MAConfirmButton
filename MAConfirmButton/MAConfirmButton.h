@@ -12,9 +12,7 @@
 
 typedef enum {
   MAConfirmButtonToggleAnimationLeft = 0,
-  MAConfirmButtonToggleAnimationRight = 1,
-  MAConfirmButtonToggleAnimationCenter =2
-
+  MAConfirmButtonToggleAnimationRight = 1
 } MAConfirmButtonToggleAnimation;
 
 @interface MAConfirmButton : UIButton {
@@ -36,5 +34,6 @@ typedef enum {
 - (void)disableWithTitle:(NSString *)disabledString;
 - (void)setAnchor:(CGPoint)anchor;
 - (void)setTintColor:(UIColor *)color;
+- (void)cancel;
 
 @end
